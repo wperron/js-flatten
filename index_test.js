@@ -1,9 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.74.0/testing/asserts.ts";
 import { bench, runBenchmarks } from "https://deno.land/std@0.74.0/testing/bench.ts";
-import { flatten_recursive } from "./index.js";
+import { flatten_recursive, flatten_dynamic } from "./index.js";
 
 Deno.test({
     name: "flatten recursive",
+    // ignore: true,
     async fn() {
         assertEquals(
             flatten_recursive(toFlatten),
@@ -12,13 +13,36 @@ Deno.test({
     },
 });
 
+Deno.test({
+    name: "flatten dynamic",
+    // ignore: true,
+    async fn() {
+        assertEquals(
+            flatten_dynamic(toFlatten),
+            flattened
+        )
+    },
+});
+
 bench({
     name: "flatten recursive",
-    runs: 1000,
+    runs: 1001,
     func(b) {
         b.start();
         for (let i = 0; i < 1000; i++) {
             flatten_recursive(toFlatten);
+        }
+        b.stop();
+    }
+});
+
+bench({
+    name: "flatten dynamic",
+    runs: 1002,
+    func(b) {
+        b.start();
+        for (let i = 0; i < 1000; i++) {
+            flatten_dynamic(toFlatten);
         }
         b.stop();
     }
@@ -41,7 +65,6 @@ const toFlatten = {
                     "other",
                 ],
             },
-            dateobj: new Date(),
         }
     },
     "id": 3955647,
