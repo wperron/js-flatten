@@ -3,14 +3,20 @@ import {
   bench,
   runBenchmarks,
 } from "https://deno.land/std@0.74.0/testing/bench.ts";
-import { flatten_dynamic, flatten_recursive } from "./index.js";
+import { flatten_dynamic, flatten_recursive as flatten_recursive_js } from "./index.js";
+import { flatten_recursive } from "./pkg/flatten.js";
+
+// const source = await Deno.readFile("./target/wasm32-unknown-unknown/debug/flatten.wasm");
+// const mod = new WebAssembly.Module(source);
+// const inst = new WebAssembly.Instance(mod, {});
+// const { flatten_recursive } = inst.exports;
 
 Deno.test({
   name: "flatten recursive",
-  // ignore: true,
+  ignore: true,
   async fn() {
     assertEquals(
-      flatten_recursive(toFlatten),
+      flatten_recursive_js(toFlatten()),
       flattened,
     );
   },
@@ -18,13 +24,24 @@ Deno.test({
 
 Deno.test({
   name: "flatten dynamic",
-  // ignore: true,
+  ignore: true,
   async fn() {
     assertEquals(
-      flatten_dynamic(toFlatten),
+      flatten_dynamic(toFlatten()),
       flattened,
     );
   },
+});
+
+Deno.test({
+  name: "flatten wasm recursive",
+  ignore: true,
+  async fn() {
+    assertEquals(
+      flatten_recursive(toFlatten(), ""),
+      flattened,
+    )
+  }
 });
 
 bench({
@@ -33,7 +50,7 @@ bench({
   func(b) {
     b.start();
     for (let i = 0; i < 1000; i++) {
-      flatten_recursive(toFlatten);
+      flatten_recursive_js(toFlatten());
     }
     b.stop();
   },
@@ -45,7 +62,19 @@ bench({
   func(b) {
     b.start();
     for (let i = 0; i < 1000; i++) {
-      flatten_dynamic(toFlatten);
+      flatten_dynamic(toFlatten());
+    }
+    b.stop();
+  },
+});
+
+bench({
+  name: "flatten wasm recursive",
+  runs: 1003,
+  func(b) {
+    b.start();
+    for (let i = 0; i < 1000; i++) {
+      flatten_recursive(toFlatten(), "");
     }
     b.stop();
   },
@@ -53,160 +82,162 @@ bench({
 
 runBenchmarks();
 
-const toFlatten = {
-  foo: {
-    bar: {
-      baz: {
-        biz: {
-          greeting: "Hello World",
+const toFlatten = () => {
+  return {
+      foo: {
+      bar: {
+        baz: {
+          biz: {
+            greeting: "Hello World",
+          },
+          nested_list: [
+            "this",
+            "that",
+            "and",
+            "the",
+            "other",
+          ],
         },
-        nested_list: [
-          "this",
-          "that",
-          "and",
-          "the",
-          "other",
-        ],
       },
     },
-  },
-  "id": 3955647,
-  "node_id": "MDEwOlJlcG9zaXRvcnkzOTU1NjQ3",
-  "name": "lodash",
-  "full_name": "lodash/lodash",
-  "private": false,
-  "owner": {
-    "login": "lodash",
-    "id": 2565403,
-    "node_id": "MDEyOk9yZ2FuaXphdGlvbjI1NjU0MDM=",
-    "avatar_url": "https://avatars3.githubusercontent.com/u/2565403?v=4",
-    "gravatar_id": "",
-    "url": "https://api.github.com/users/lodash",
-    "html_url": "https://github.com/lodash",
-    "followers_url": "https://api.github.com/users/lodash/followers",
-    "following_url":
-      "https://api.github.com/users/lodash/following{/other_user}",
-    "gists_url": "https://api.github.com/users/lodash/gists{/gist_id}",
-    "starred_url": "https://api.github.com/users/lodash/starred{/owner}{/repo}",
-    "subscriptions_url": "https://api.github.com/users/lodash/subscriptions",
-    "organizations_url": "https://api.github.com/users/lodash/orgs",
-    "repos_url": "https://api.github.com/users/lodash/repos",
-    "events_url": "https://api.github.com/users/lodash/events{/privacy}",
-    "received_events_url":
-      "https://api.github.com/users/lodash/received_events",
-    "type": "Organization",
-    "site_admin": false,
-  },
-  "html_url": "https://github.com/lodash/lodash",
-  "description":
-    "A modern JavaScript utility library delivering modularity, performance, & extras.",
-  "fork": false,
-  "url": "https://api.github.com/repos/lodash/lodash",
-  "forks_url": "https://api.github.com/repos/lodash/lodash/forks",
-  "keys_url": "https://api.github.com/repos/lodash/lodash/keys{/key_id}",
-  "collaborators_url":
-    "https://api.github.com/repos/lodash/lodash/collaborators{/collaborator}",
-  "teams_url": "https://api.github.com/repos/lodash/lodash/teams",
-  "hooks_url": "https://api.github.com/repos/lodash/lodash/hooks",
-  "issue_events_url":
-    "https://api.github.com/repos/lodash/lodash/issues/events{/number}",
-  "events_url": "https://api.github.com/repos/lodash/lodash/events",
-  "assignees_url":
-    "https://api.github.com/repos/lodash/lodash/assignees{/user}",
-  "branches_url":
-    "https://api.github.com/repos/lodash/lodash/branches{/branch}",
-  "tags_url": "https://api.github.com/repos/lodash/lodash/tags",
-  "blobs_url": "https://api.github.com/repos/lodash/lodash/git/blobs{/sha}",
-  "git_tags_url": "https://api.github.com/repos/lodash/lodash/git/tags{/sha}",
-  "git_refs_url": "https://api.github.com/repos/lodash/lodash/git/refs{/sha}",
-  "trees_url": "https://api.github.com/repos/lodash/lodash/git/trees{/sha}",
-  "statuses_url": "https://api.github.com/repos/lodash/lodash/statuses/{sha}",
-  "languages_url": "https://api.github.com/repos/lodash/lodash/languages",
-  "stargazers_url": "https://api.github.com/repos/lodash/lodash/stargazers",
-  "contributors_url": "https://api.github.com/repos/lodash/lodash/contributors",
-  "subscribers_url": "https://api.github.com/repos/lodash/lodash/subscribers",
-  "subscription_url": "https://api.github.com/repos/lodash/lodash/subscription",
-  "commits_url": "https://api.github.com/repos/lodash/lodash/commits{/sha}",
-  "git_commits_url":
-    "https://api.github.com/repos/lodash/lodash/git/commits{/sha}",
-  "comments_url":
-    "https://api.github.com/repos/lodash/lodash/comments{/number}",
-  "issue_comment_url":
-    "https://api.github.com/repos/lodash/lodash/issues/comments{/number}",
-  "contents_url": "https://api.github.com/repos/lodash/lodash/contents/{+path}",
-  "compare_url":
-    "https://api.github.com/repos/lodash/lodash/compare/{base}...{head}",
-  "merges_url": "https://api.github.com/repos/lodash/lodash/merges",
-  "archive_url":
-    "https://api.github.com/repos/lodash/lodash/{archive_format}{/ref}",
-  "downloads_url": "https://api.github.com/repos/lodash/lodash/downloads",
-  "issues_url": "https://api.github.com/repos/lodash/lodash/issues{/number}",
-  "pulls_url": "https://api.github.com/repos/lodash/lodash/pulls{/number}",
-  "milestones_url":
-    "https://api.github.com/repos/lodash/lodash/milestones{/number}",
-  "notifications_url":
-    "https://api.github.com/repos/lodash/lodash/notifications{?since,all,participating}",
-  "labels_url": "https://api.github.com/repos/lodash/lodash/labels{/name}",
-  "releases_url": "https://api.github.com/repos/lodash/lodash/releases{/id}",
-  "deployments_url": "https://api.github.com/repos/lodash/lodash/deployments",
-  "created_at": "2012-04-07T04:11:46Z",
-  "updated_at": "2020-10-26T23:48:06Z",
-  "pushed_at": "2020-10-22T05:44:17Z",
-  "git_url": "git://github.com/lodash/lodash.git",
-  "ssh_url": "git@github.com:lodash/lodash.git",
-  "clone_url": "https://github.com/lodash/lodash.git",
-  "svn_url": "https://github.com/lodash/lodash",
-  "homepage": "https://lodash.com/",
-  "size": 47061,
-  "stargazers_count": 46912,
-  "watchers_count": 46912,
-  "language": "JavaScript",
-  "has_issues": true,
-  "has_projects": false,
-  "has_downloads": true,
-  "has_wiki": true,
-  "has_pages": false,
-  "forks_count": 5267,
-  "mirror_url": null,
-  "archived": false,
-  "disabled": false,
-  "open_issues_count": 166,
-  "license": {
-    "key": "other",
-    "name": "Other",
-    "spdx_id": "NOASSERTION",
-    "url": null,
-    "node_id": "MDc6TGljZW5zZTA=",
-  },
-  "forks": 5267,
-  "open_issues": 166,
-  "watchers": 46912,
-  "default_branch": "master",
-  "temp_clone_token": null,
-  "organization": {
-    "login": "lodash",
-    "id": 2565403,
-    "node_id": "MDEyOk9yZ2FuaXphdGlvbjI1NjU0MDM=",
-    "avatar_url": "https://avatars3.githubusercontent.com/u/2565403?v=4",
-    "gravatar_id": "",
-    "url": "https://api.github.com/users/lodash",
-    "html_url": "https://github.com/lodash",
-    "followers_url": "https://api.github.com/users/lodash/followers",
-    "following_url":
-      "https://api.github.com/users/lodash/following{/other_user}",
-    "gists_url": "https://api.github.com/users/lodash/gists{/gist_id}",
-    "starred_url": "https://api.github.com/users/lodash/starred{/owner}{/repo}",
-    "subscriptions_url": "https://api.github.com/users/lodash/subscriptions",
-    "organizations_url": "https://api.github.com/users/lodash/orgs",
-    "repos_url": "https://api.github.com/users/lodash/repos",
-    "events_url": "https://api.github.com/users/lodash/events{/privacy}",
-    "received_events_url":
-      "https://api.github.com/users/lodash/received_events",
-    "type": "Organization",
-    "site_admin": false,
-  },
-  "network_count": 5267,
-  "subscribers_count": 886,
+    "id": 3955647,
+    "node_id": "MDEwOlJlcG9zaXRvcnkzOTU1NjQ3",
+    "name": "lodash",
+    "full_name": "lodash/lodash",
+    "private": false,
+    "owner": {
+      "login": "lodash",
+      "id": 2565403,
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjI1NjU0MDM=",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/2565403?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/lodash",
+      "html_url": "https://github.com/lodash",
+      "followers_url": "https://api.github.com/users/lodash/followers",
+      "following_url":
+        "https://api.github.com/users/lodash/following{/other_user}",
+      "gists_url": "https://api.github.com/users/lodash/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/lodash/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/lodash/subscriptions",
+      "organizations_url": "https://api.github.com/users/lodash/orgs",
+      "repos_url": "https://api.github.com/users/lodash/repos",
+      "events_url": "https://api.github.com/users/lodash/events{/privacy}",
+      "received_events_url":
+        "https://api.github.com/users/lodash/received_events",
+      "type": "Organization",
+      "site_admin": false,
+    },
+    "html_url": "https://github.com/lodash/lodash",
+    "description":
+      "A modern JavaScript utility library delivering modularity, performance, & extras.",
+    "fork": false,
+    "url": "https://api.github.com/repos/lodash/lodash",
+    "forks_url": "https://api.github.com/repos/lodash/lodash/forks",
+    "keys_url": "https://api.github.com/repos/lodash/lodash/keys{/key_id}",
+    "collaborators_url":
+      "https://api.github.com/repos/lodash/lodash/collaborators{/collaborator}",
+    "teams_url": "https://api.github.com/repos/lodash/lodash/teams",
+    "hooks_url": "https://api.github.com/repos/lodash/lodash/hooks",
+    "issue_events_url":
+      "https://api.github.com/repos/lodash/lodash/issues/events{/number}",
+    "events_url": "https://api.github.com/repos/lodash/lodash/events",
+    "assignees_url":
+      "https://api.github.com/repos/lodash/lodash/assignees{/user}",
+    "branches_url":
+      "https://api.github.com/repos/lodash/lodash/branches{/branch}",
+    "tags_url": "https://api.github.com/repos/lodash/lodash/tags",
+    "blobs_url": "https://api.github.com/repos/lodash/lodash/git/blobs{/sha}",
+    "git_tags_url": "https://api.github.com/repos/lodash/lodash/git/tags{/sha}",
+    "git_refs_url": "https://api.github.com/repos/lodash/lodash/git/refs{/sha}",
+    "trees_url": "https://api.github.com/repos/lodash/lodash/git/trees{/sha}",
+    "statuses_url": "https://api.github.com/repos/lodash/lodash/statuses/{sha}",
+    "languages_url": "https://api.github.com/repos/lodash/lodash/languages",
+    "stargazers_url": "https://api.github.com/repos/lodash/lodash/stargazers",
+    "contributors_url": "https://api.github.com/repos/lodash/lodash/contributors",
+    "subscribers_url": "https://api.github.com/repos/lodash/lodash/subscribers",
+    "subscription_url": "https://api.github.com/repos/lodash/lodash/subscription",
+    "commits_url": "https://api.github.com/repos/lodash/lodash/commits{/sha}",
+    "git_commits_url":
+      "https://api.github.com/repos/lodash/lodash/git/commits{/sha}",
+    "comments_url":
+      "https://api.github.com/repos/lodash/lodash/comments{/number}",
+    "issue_comment_url":
+      "https://api.github.com/repos/lodash/lodash/issues/comments{/number}",
+    "contents_url": "https://api.github.com/repos/lodash/lodash/contents/{+path}",
+    "compare_url":
+      "https://api.github.com/repos/lodash/lodash/compare/{base}...{head}",
+    "merges_url": "https://api.github.com/repos/lodash/lodash/merges",
+    "archive_url":
+      "https://api.github.com/repos/lodash/lodash/{archive_format}{/ref}",
+    "downloads_url": "https://api.github.com/repos/lodash/lodash/downloads",
+    "issues_url": "https://api.github.com/repos/lodash/lodash/issues{/number}",
+    "pulls_url": "https://api.github.com/repos/lodash/lodash/pulls{/number}",
+    "milestones_url":
+      "https://api.github.com/repos/lodash/lodash/milestones{/number}",
+    "notifications_url":
+      "https://api.github.com/repos/lodash/lodash/notifications{?since,all,participating}",
+    "labels_url": "https://api.github.com/repos/lodash/lodash/labels{/name}",
+    "releases_url": "https://api.github.com/repos/lodash/lodash/releases{/id}",
+    "deployments_url": "https://api.github.com/repos/lodash/lodash/deployments",
+    "created_at": "2012-04-07T04:11:46Z",
+    "updated_at": "2020-10-26T23:48:06Z",
+    "pushed_at": "2020-10-22T05:44:17Z",
+    "git_url": "git://github.com/lodash/lodash.git",
+    "ssh_url": "git@github.com:lodash/lodash.git",
+    "clone_url": "https://github.com/lodash/lodash.git",
+    "svn_url": "https://github.com/lodash/lodash",
+    "homepage": "https://lodash.com/",
+    "size": 47061,
+    "stargazers_count": 46912,
+    "watchers_count": 46912,
+    "language": "JavaScript",
+    "has_issues": true,
+    "has_projects": false,
+    "has_downloads": true,
+    "has_wiki": true,
+    "has_pages": false,
+    "forks_count": 5267,
+    "mirror_url": null,
+    "archived": false,
+    "disabled": false,
+    "open_issues_count": 166,
+    "license": {
+      "key": "other",
+      "name": "Other",
+      "spdx_id": "NOASSERTION",
+      "url": null,
+      "node_id": "MDc6TGljZW5zZTA=",
+    },
+    "forks": 5267,
+    "open_issues": 166,
+    "watchers": 46912,
+    "default_branch": "master",
+    "temp_clone_token": null,
+    "organization": {
+      "login": "lodash",
+      "id": 2565403,
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjI1NjU0MDM=",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/2565403?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/lodash",
+      "html_url": "https://github.com/lodash",
+      "followers_url": "https://api.github.com/users/lodash/followers",
+      "following_url":
+        "https://api.github.com/users/lodash/following{/other_user}",
+      "gists_url": "https://api.github.com/users/lodash/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/lodash/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/lodash/subscriptions",
+      "organizations_url": "https://api.github.com/users/lodash/orgs",
+      "repos_url": "https://api.github.com/users/lodash/repos",
+      "events_url": "https://api.github.com/users/lodash/events{/privacy}",
+      "received_events_url":
+        "https://api.github.com/users/lodash/received_events",
+      "type": "Organization",
+      "site_admin": false,
+    },
+    "network_count": 5267,
+    "subscribers_count": 886,
+  };
 };
 
 const flattened = {
