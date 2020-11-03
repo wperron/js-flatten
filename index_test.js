@@ -35,7 +35,7 @@ Deno.test({
 
 Deno.test({
   name: "flatten wasm recursive",
-  ignore: true,
+  // ignore: true,
   async fn() {
     assertEquals(
       flatten_recursive(toFlatten(), ""),
@@ -80,11 +80,11 @@ bench({
   },
 });
 
-runBenchmarks();
+// runBenchmarks();
 
 const toFlatten = () => {
   return {
-      foo: {
+    foo: {
       bar: {
         baz: {
           biz: {

@@ -1,31 +1,28 @@
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn flatten_recursive(val: &JsValue, prefix: String) -> Result<JsValue, JsValue> {
-    let target = &JsValue::from(val);
-
-    let tmp = "foo".to_string();
-    let tmp2 = "baz".to_string();
-    let concat = tmp + &tmp2;
-    print!("{}", concat);
-
+pub fn flatten_recursive(obj: JsValue, prefix: String, mut acc: &JsValue) -> Result<JsValue, JsValue> {
+    if acc.is_undefined() {
+        acc = &js_sys::Object::new();
+    }
     // Note: Map, Set and Array all have .keys method
-    let keys = js_sys::Reflect::own_keys(target)?;
+    let keys = js_sys::Reflect::own_keys(&obj)?;
     for key in keys.iter() {
-        let val = js_sys::Reflect::get(target, &key)?;
+        let val = js_sys::Reflect::get(&obj, &key)?;
         let key = key
             .as_string()
             .ok_or_else(|| "failed to extract object key")?;
+
         if val.is_object() {
-            flatten_recursive(&val, format!("{}_{}", prefix, key))?;
+            flatten_recursive(val, format!("{}_{}", prefix, key), acc)?;
         } else {
             js_sys::Reflect::set(
-                target,
+                acc,
                 &JsValue::from(format!("{}_{}", prefix, key)),
                 &val,
             )?;
         }
     }
 
-    Ok(JsValue::from(target))
+    Ok(JsValue::from(obj))
 }
