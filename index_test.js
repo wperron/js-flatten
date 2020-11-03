@@ -13,7 +13,6 @@ import { flatten_recursive } from "./pkg/flatten.js";
 
 Deno.test({
   name: "flatten recursive",
-  ignore: true,
   async fn() {
     assertEquals(
       flatten_recursive_js(toFlatten()),
@@ -24,7 +23,6 @@ Deno.test({
 
 Deno.test({
   name: "flatten dynamic",
-  ignore: true,
   async fn() {
     assertEquals(
       flatten_dynamic(toFlatten()),
@@ -35,7 +33,6 @@ Deno.test({
 
 Deno.test({
   name: "flatten wasm recursive",
-  // ignore: true,
   async fn() {
     assertEquals(
       flatten_recursive(toFlatten(), ""),
@@ -80,7 +77,7 @@ bench({
   },
 });
 
-// runBenchmarks();
+runBenchmarks();
 
 const toFlatten = () => {
   return {
