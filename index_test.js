@@ -6,11 +6,6 @@ import {
 import { flatten_dynamic, flatten_recursive as flatten_recursive_js } from "./index.js";
 import { flatten_recursive } from "./pkg/flatten.js";
 
-// const source = await Deno.readFile("./target/wasm32-unknown-unknown/debug/flatten.wasm");
-// const mod = new WebAssembly.Module(source);
-// const inst = new WebAssembly.Instance(mod, {});
-// const { flatten_recursive } = inst.exports;
-
 Deno.test({
   name: "flatten recursive",
   async fn() {
